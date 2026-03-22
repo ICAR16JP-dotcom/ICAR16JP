@@ -172,7 +172,7 @@ function routineBegin(thisTrial, blockName) {
                 mainImage.setPos([0, 0.20]); 
                 mainImage.setSize([0.65, 0.55]); 
             } else {
-                mainImage.setPos([0, 0.20]);
+                mainImage.setPos([0, 0.10]);
                 mainImage.setSize([0.60, 0.30]);
             }
             
