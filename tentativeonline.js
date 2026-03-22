@@ -80,6 +80,10 @@ var totalQuestions = 16, currentQuestionIdx = 0;
 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
+// Hover colour constants
+const COLOR_DEFAULT = new util.Color('white');
+const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]); // soft light-blue
+
 async function experimentInit() {
     routineClock = new util.Clock();
     
@@ -106,7 +110,7 @@ async function experimentInit() {
     const y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
     
     for (let i = 0; i < 8; i++) {
-        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: new util.Color('white') });
+        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: COLOR_DEFAULT });
         opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
     }
     
@@ -169,7 +173,7 @@ function routineBegin(thisTrial, blockName) {
                 mainImage.setPos([0, 0.12]);  
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
-                // Top edge: 0.355, Bottom edge: -0.095 (Safe)
+                // Top edge: 0.275, Bottom edge: -0.175 (Safe, below question text at 0.43)
                 mainImage.setPos([0, 0.05]); 
                 mainImage.setSize([0.65, 0.45]); 
             } else {
@@ -193,7 +197,7 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setFillColor(new util.Color('white'));
+            opt_boxes[i-1].setFillColor(COLOR_DEFAULT); // reset to white at routine start
         }
         
         psychoJS.experiment.addData('block', blockName);
@@ -211,7 +215,17 @@ function routineFrame(thisTrial, blockName) {
         opt_texts.forEach(t => t.setAutoDraw(true));
         
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
+
+        // --- HOVER HIGHLIGHT ---
+        for (let i = 0; i < 8; i++) {
+            if (opt_boxes[i].contains(mouse)) {
+                opt_boxes[i].setFillColor(COLOR_HOVER);
+            } else {
+                opt_boxes[i].setFillColor(COLOR_DEFAULT);
+            }
+        }
         
+        // --- CLICK DETECTION ---
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
             for (let i = 0; i < 8; i++) {
                 if (opt_boxes[i].contains(mouse)) {
@@ -280,6 +294,3 @@ async function quitPsychoJS() {
     }, 3000);
     return Scheduler.Event.QUIT;
 }
-
-function trialsLoopEnd() { return Scheduler.Event.NEXT; }
-function importConditions(s) { return async function () { psychoJS.importAttributes(s); return Scheduler.Event.NEXT; }; }
