@@ -80,9 +80,8 @@ var totalQuestions = 16, currentQuestionIdx = 0;
 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
-// ← HOVER: costanti colore
 const COLOR_DEFAULT = new util.Color('white');
-const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]); // azzurro chiaro
+const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);
 
 async function experimentInit() {
     routineClock = new util.Clock();
@@ -194,7 +193,7 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setFillColor(COLOR_DEFAULT); // ← HOVER: reset a bianco ad ogni domanda
+            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
         
         psychoJS.experiment.addData('block', blockName);
@@ -208,12 +207,13 @@ function routineFrame(thisTrial, blockName) {
         mainQ.setAutoDraw(true); 
         progressBox.setAutoDraw(true); 
         progressBar.setAutoDraw(true);
-        opt_boxes.forEach(b => b.setAutoDraw(true)); 
-        opt_texts.forEach(t => t.setAutoDraw(true));
-        
+
+        // box prima, testi dopo — così i testi stanno sempre sopra
+        opt_boxes.forEach(b => b.setAutoDraw(true));
+
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
 
-        // ← HOVER: aggiorna colore box ad ogni frame
+        // --- HOVER HIGHLIGHT ---
         for (let i = 0; i < 8; i++) {
             if (opt_boxes[i].contains(mouse)) {
                 opt_boxes[i].setFillColor(COLOR_HOVER);
@@ -221,7 +221,11 @@ function routineFrame(thisTrial, blockName) {
                 opt_boxes[i].setFillColor(COLOR_DEFAULT);
             }
         }
-        
+
+        // testi ridisegnati DOPO l'hover, rimangono sempre in cima
+        opt_texts.forEach(t => t.setAutoDraw(true));
+
+        // --- CLICK DETECTION ---
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
             for (let i = 0; i < 8; i++) {
                 if (opt_boxes[i].contains(mouse)) {
