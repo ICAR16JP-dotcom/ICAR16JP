@@ -1,7 +1,7 @@
 /********************************************************
- * ICAR16 - FINAL STABLE VERSION (COMPLETE)
- * PhD Research Data Collection
- * Features: 16 Random Trials, Exact Screenshot Dimensions
+ * ICAR16 - FINAL RESEARCH VERSION
+ * PhD Research Data Collection - Beatrice Iaria
+ * Features: 16 Randomized Trials, Updated Visual Geometry
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -49,6 +49,7 @@ for (const block of blocks) {
 
 flowScheduler.add(quitPsychoJS);
 
+// --- RESOURCES MANAGEMENT ---
 let resources = [
     { name: 'conditions_LN.csv', path: './resources/conditions_LN.csv' },
     { name: 'conditions_VR.csv', path: './resources/conditions_VR.csv' },
@@ -84,18 +85,18 @@ async function experimentInit() {
     
     mainImage = new visual.ImageStim({ 
         win: psychoJS.window, 
-        pos: [0, 0.15], 
-        size: [0.55, 0.4], 
+        pos: [0, 0.10], 
+        size: [0.60, 0.40], 
         interpolate: true 
     });
     
     mainQ = new visual.TextStim({ 
         win: psychoJS.window, 
         font: 'Hiragino Kaku Gothic Pro', 
-        pos: [0, 0.42], 
+        pos: [0, 0.43], 
         height: 0.028, 
         color: new util.Color('white'), 
-        wrapWidth: 0.9 
+        wrapWidth: 1.2 
     });
     
     progressBox = new visual.Rect({ win: psychoJS.window, width: 0.8, height: 0.01, pos: [0, -0.48], lineColor: new util.Color('grey') });
@@ -162,13 +163,14 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setImage(img); 
             mainImage.setOpacity(1.0); 
             
-            // EXACT GEOMETRY FROM SCREENSHOTS
             if (blockName === '3DR') {
-                mainImage.setPos([0, 0.10]);  
-                mainImage.setSize([1.20, 0.32]); // Wide
+                // Diminuito larghezza (1.10) e aumentato altezza (0.45)
+                mainImage.setPos([0, 0.08]);  
+                mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
-                mainImage.setPos([0, 0.16]); 
-                mainImage.setSize([0.45, 0.45]); // Square
+                // Aumentata dimensione generale a 0.55
+                mainImage.setPos([0, 0.12]); 
+                mainImage.setSize([0.55, 0.55]); 
             } else {
                 mainImage.setPos([0, 0.10]);
                 mainImage.setSize([0.60, 0.30]);
@@ -178,7 +180,6 @@ function routineBegin(thisTrial, blockName) {
             mainQ.setHeight(0.028);
             mainQ.setWrapWidth(1.4); 
         } else { 
-            // Phase without images (LN, VR)
             mainImage.setOpacity(0.0); 
             mainQ.setPos([0, 0.15]);
             mainQ.setHeight(0.045);
@@ -251,39 +252,31 @@ async function quitPsychoJS() {
 
     psychoJS.experiment.save();
     const csvText = psychoJS.experiment.getResultAsCsv();
-
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhWBcNeQgH7hqr5pjhi9ZRNXRIc6M8xgJI8cbAHLU6YM31UcMrhNxbbVy3QgCJCBDX/exec";
-
     const iframe = document.createElement('iframe');
     iframe.name = 'hidden_iframe';
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
-
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = GOOGLE_SCRIPT_URL;
     form.target = 'hidden_iframe'; 
-
     const filenameInput = document.createElement('input');
     filenameInput.type = 'hidden';
     filenameInput.name = 'filename';
     filenameInput.value = `${psychoJS.experiment.dataFileName}.csv`;
     form.appendChild(filenameInput);
-
     const dataInput = document.createElement('input');
     dataInput.type = 'hidden';
     dataInput.name = 'data';
     dataInput.value = csvText;
     form.appendChild(dataInput);
-
     document.body.appendChild(form);
     form.submit();
-
     setTimeout(() => {
         psychoJS.window.close();
         psychoJS.quit();
     }, 3000);
-
     return Scheduler.Event.QUIT;
 }
 
