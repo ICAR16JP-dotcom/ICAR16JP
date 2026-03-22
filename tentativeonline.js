@@ -76,7 +76,8 @@ async function updateInfo() {
 
 var routineClock, mainImage, mainQ, mouse, progressBar, progressBox;
 var opt_texts = [], opt_boxes = [];
-var totalQuestions = 16, currentQuestionIdx = 0; 
+var totalQuestions = 16, currentQuestionIdx = 0;
+var currentTrials; // ← variabile globale per trialsLoopEnd
 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
@@ -123,23 +124,23 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
         let allConditions = TrialHandler.importConditions(psychoJS.serverManager, fileName);
         util.shuffle(allConditions);
         
-        let trials = new TrialHandler({ 
+        currentTrials = new TrialHandler({ 
             psychoJS, 
             nReps: 1, 
             method: TrialHandler.Method.SEQUENTIAL, 
             trialList: allConditions.slice(0, 4), 
             name: blockName 
         });
-        psychoJS.experiment.addLoop(trials);
+        psychoJS.experiment.addLoop(currentTrials);
         
-        const trialIterator = trials[Symbol.iterator]();
+        const trialIterator = currentTrials[Symbol.iterator]();
         
         function nextTrial() {
             let stepResult = trialIterator.next();
             if (stepResult.done) return Scheduler.Event.NEXT;
             let thisTrial = stepResult.value;
             
-            scheduler.add(importConditions(trials.getSnapshot()));
+            scheduler.add(importConditions(currentTrials.getSnapshot()));
             scheduler.add(routineBegin(thisTrial, blockName));
             scheduler.add(routineFrame(thisTrial, blockName));
             scheduler.add(routineEnd());
@@ -150,6 +151,12 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
         scheduler.add(nextTrial);
         return Scheduler.Event.NEXT;
     }
+}
+
+// ← funzione ora definita, usa currentTrials
+async function trialsLoopEnd() {
+    psychoJS.experiment.removeLoop(currentTrials);
+    return Scheduler.Event.NEXT;
 }
 
 function routineBegin(thisTrial, blockName) {
@@ -167,13 +174,10 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setImage(img); 
             mainImage.setOpacity(1.0); 
             
-            // Safe mathematical positioning to prevent overlapping
             if (blockName === '3DR') {
-                // Top edge: 0.345, Bottom edge: -0.105 (Safe)
                 mainImage.setPos([0, 0.12]);  
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
-                // Top edge: 0.275, Bottom edge: -0.175 (Safe, below question text at 0.43)
                 mainImage.setPos([0, 0.05]); 
                 mainImage.setSize([0.65, 0.45]); 
             } else {
@@ -197,7 +201,7 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setFillColor(COLOR_DEFAULT); // reset to white at routine start
+            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
         
         psychoJS.experiment.addData('block', blockName);
