@@ -76,13 +76,9 @@ async function updateInfo() {
 
 var routineClock, mainImage, mainQ, mouse, progressBar, progressBox;
 var opt_texts = [], opt_boxes = [];
-var totalQuestions = 16, currentQuestionIdx = 0;
-var currentTrials;
+var totalQuestions = 16, currentQuestionIdx = 0; 
 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
-
-const COLOR_DEFAULT = new util.Color('white');
-const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);
 
 async function experimentInit() {
     routineClock = new util.Clock();
@@ -110,7 +106,7 @@ async function experimentInit() {
     const y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
     
     for (let i = 0; i < 8; i++) {
-        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: COLOR_DEFAULT });
+        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: new util.Color('white') });
         opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
     }
     
@@ -123,23 +119,23 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
         let allConditions = TrialHandler.importConditions(psychoJS.serverManager, fileName);
         util.shuffle(allConditions);
         
-        currentTrials = new TrialHandler({ 
+        let trials = new TrialHandler({ 
             psychoJS, 
             nReps: 1, 
             method: TrialHandler.Method.SEQUENTIAL, 
             trialList: allConditions.slice(0, 4), 
             name: blockName 
         });
-        psychoJS.experiment.addLoop(currentTrials);
+        psychoJS.experiment.addLoop(trials);
         
-        const trialIterator = currentTrials[Symbol.iterator]();
+        const trialIterator = trials[Symbol.iterator]();
         
         function nextTrial() {
             let stepResult = trialIterator.next();
             if (stepResult.done) return Scheduler.Event.NEXT;
             let thisTrial = stepResult.value;
             
-            // ← rimossa la riga importConditions() che non era definita
+            scheduler.add(importConditions(trials.getSnapshot()));
             scheduler.add(routineBegin(thisTrial, blockName));
             scheduler.add(routineFrame(thisTrial, blockName));
             scheduler.add(routineEnd());
@@ -150,11 +146,6 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
         scheduler.add(nextTrial);
         return Scheduler.Event.NEXT;
     }
-}
-
-async function trialsLoopEnd() {
-    psychoJS.experiment.removeLoop(currentTrials);
-    return Scheduler.Event.NEXT;
 }
 
 function routineBegin(thisTrial, blockName) {
@@ -173,13 +164,15 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setOpacity(1.0); 
             
             if (blockName === '3DR') {
-                mainImage.setPos([0, 0.12]);  
+                // Diminuito larghezza (1.10) e aumentato altezza (0.45)
+                mainImage.setPos([0, 0.08]);  
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
-                mainImage.setPos([0, 0.05]); 
-                mainImage.setSize([0.65, 0.45]); 
+                // Aumentata dimensione generale a 0.55
+                mainImage.setPos([0, 0.12]); 
+                mainImage.setSize([0.55, 0.55]); 
             } else {
-                mainImage.setPos([0, 0.15]);
+                mainImage.setPos([0, 0.10]);
                 mainImage.setSize([0.60, 0.30]);
             }
             
@@ -199,7 +192,7 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
+            opt_boxes[i-1].setFillColor(new util.Color('white'));
         }
         
         psychoJS.experiment.addData('block', blockName);
@@ -217,17 +210,7 @@ function routineFrame(thisTrial, blockName) {
         opt_texts.forEach(t => t.setAutoDraw(true));
         
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
-
-        // --- HOVER HIGHLIGHT ---
-        for (let i = 0; i < 8; i++) {
-            if (opt_boxes[i].contains(mouse)) {
-                opt_boxes[i].setFillColor(COLOR_HOVER);
-            } else {
-                opt_boxes[i].setFillColor(COLOR_DEFAULT);
-            }
-        }
         
-        // --- CLICK DETECTION ---
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
             for (let i = 0; i < 8; i++) {
                 if (opt_boxes[i].contains(mouse)) {
@@ -296,3 +279,6 @@ async function quitPsychoJS() {
     }, 3000);
     return Scheduler.Event.QUIT;
 }
+
+function trialsLoopEnd() { return Scheduler.Event.NEXT; }
+function importConditions(s) { return async function () { psychoJS.importAttributes(s); return Scheduler.Event.NEXT; }; }
