@@ -1,6 +1,8 @@
 /********************************************************
- * ICAR16 - FINAL VERSION
- * Features: 16 Randomized Trials
+ * ICAR16 - FINAL RESEARCH VERSION
+ * PhD Research Data Collection - Beatrice Iaria
+ * Features: 16 Randomized Trials, Updated Visual Geometry
+ * Mobile/Tablet/PC compatible
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -86,6 +88,10 @@ const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);
 
 var introText, startBox, startText, introMouse, introMouseWasReleased;
 
+// detect se siamo su schermo stretto (smartphone verticale)
+const isNarrow = window.innerWidth < window.innerHeight;
+const FONT = 'Noto Sans JP, Hiragino Kaku Gothic Pro, sans-serif';
+
 async function experimentInit() {
     routineClock = new util.Clock();
     
@@ -98,38 +104,53 @@ async function experimentInit() {
     
     mainQ = new visual.TextStim({ 
         win: psychoJS.window, 
-        font: 'Hiragino Kaku Gothic Pro', 
-        pos: [0, 0.43], 
-        height: 0.028, 
+        font: FONT,
+        pos: [0, isNarrow ? 0.38 : 0.43],
+        height: isNarrow ? 0.038 : 0.028,
         color: new util.Color('white'), 
-        wrapWidth: 1.2 
+        wrapWidth: isNarrow ? 0.95 : 1.4
     });
     
     progressBox = new visual.Rect({ win: psychoJS.window, width: 0.8, height: 0.01, pos: [0, -0.48], lineColor: new util.Color('grey') });
     progressBar = new visual.Rect({ win: psychoJS.window, width: 0, height: 0.01, pos: [-0.4, -0.48], fillColor: new util.Color('white') });
     
-    const x_pos = [-0.48, -0.16, 0.16, 0.48, -0.48, -0.16, 0.16, 0.48];
-    const y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
+    // layout: 4 colonne su wide, 2 colonne su narrow
+    let x_pos, y_pos, boxW, boxH, textH;
+    if (isNarrow) {
+        // 2 colonne x 4 righe su smartphone
+        x_pos = [-0.25, 0.25, -0.25, 0.25, -0.25, 0.25, -0.25, 0.25];
+        y_pos = [-0.10, -0.10, -0.22, -0.22, -0.34, -0.34, -0.46, -0.46];
+        boxW = 0.45;
+        boxH = 0.09;
+        textH = 0.028;
+    } else {
+        // 4 colonne x 2 righe su tablet/PC
+        x_pos = [-0.48, -0.16, 0.16, 0.48, -0.48, -0.16, 0.16, 0.48];
+        y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
+        boxW = 0.30;
+        boxH = 0.10;
+        textH = 0.022;
+    }
     
     for (let i = 0; i < 8; i++) {
-        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: COLOR_DEFAULT });
-        opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
+        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: boxW, height: boxH, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: COLOR_DEFAULT });
+        opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: FONT, pos: [x_pos[i], y_pos[i]], height: textH, color: new util.Color('black') });
     }
 
     introText = new visual.TextStim({
         win: psychoJS.window,
-        font: 'Hiragino Kaku Gothic Pro',
+        font: FONT,
         pos: [0, 0.10],
-        height: 0.038,
+        height: isNarrow ? 0.048 : 0.038,
         color: new util.Color('white'),
-        wrapWidth: 1.4,
+        wrapWidth: isNarrow ? 0.90 : 1.4,
         text: 'これからテストを始めます。\n\n画面に問題が表示されます。\n\n正しいと思う答えを、下のボックスをクリックして選んでください。\n\n準備ができたら「スタート」ボタンを押してください。'
     });
 
     startBox = new visual.Rect({
         win: psychoJS.window,
-        width: 0.30,
-        height: 0.10,
+        width: isNarrow ? 0.50 : 0.30,
+        height: isNarrow ? 0.12 : 0.10,
         pos: [0, -0.32],
         lineColor: new util.Color('white'),
         fillColor: new util.Color('white')
@@ -137,9 +158,9 @@ async function experimentInit() {
 
     startText = new visual.TextStim({
         win: psychoJS.window,
-        font: 'Hiragino Kaku Gothic Pro',
+        font: FONT,
         pos: [0, -0.32],
-        height: 0.040,
+        height: isNarrow ? 0.055 : 0.040,
         color: new util.Color('black'),
         text: 'スタート'
     });
@@ -160,7 +181,6 @@ async function introBegin() {
 async function introFrame() {
     if (introMouse.getPressed()[0] === 0) introMouseWasReleased = true;
 
-    // hover bottone: false/true trick per tenere startText sopra
     startText.setAutoDraw(false);
     if (startBox.contains(introMouse)) {
         startBox.setFillColor(COLOR_HOVER);
@@ -232,24 +252,24 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setOpacity(1.0); 
             
             if (blockName === '3DR') {
-                mainImage.setPos([0, 0.10]);  
-                mainImage.setSize([1.10, 0.49]); 
+                mainImage.setPos([0, isNarrow ? 0.18 : 0.10]);  
+                mainImage.setSize([isNarrow ? 0.95 : 1.10, isNarrow ? 0.35 : 0.49]); 
             } else if (blockName === 'MX') {
-                mainImage.setPos([0, 0.12]); 
-                mainImage.setSize([0.75, 0.48]); 
+                mainImage.setPos([0, isNarrow ? 0.18 : 0.12]); 
+                mainImage.setSize([isNarrow ? 0.90 : 0.75, isNarrow ? 0.32 : 0.48]); 
             } else {
-                mainImage.setPos([0, 0.10]);
-                mainImage.setSize([0.60, 0.30]);
+                mainImage.setPos([0, isNarrow ? 0.18 : 0.10]);
+                mainImage.setSize([isNarrow ? 0.90 : 0.60, isNarrow ? 0.28 : 0.30]);
             }
             
-            mainQ.setPos([0, 0.43]);
-            mainQ.setHeight(0.028);
-            mainQ.setWrapWidth(1.4); 
+            mainQ.setPos([0, isNarrow ? 0.38 : 0.43]);
+            mainQ.setHeight(isNarrow ? 0.038 : 0.028);
+            mainQ.setWrapWidth(isNarrow ? 0.95 : 1.4); 
         } else { 
             mainImage.setOpacity(0.0); 
-            mainQ.setPos([0, 0.15]);
-            mainQ.setHeight(0.045);
-            mainQ.setWrapWidth(0.85); 
+            mainQ.setPos([0, isNarrow ? 0.25 : 0.15]);
+            mainQ.setHeight(isNarrow ? 0.050 : 0.045);
+            mainQ.setWrapWidth(isNarrow ? 0.90 : 0.85); 
         }
 
         mainQ.setText(thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString().replace(/\\n/g, '\n') : "");
@@ -276,7 +296,7 @@ function routineFrame(thisTrial, blockName) {
 
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
 
-        // ← trucco: togli i testi, aggiorna i box, rimetti i testi sopra
+        // hover: false/true trick
         opt_texts.forEach(t => t.setAutoDraw(false));
         for (let i = 0; i < 8; i++) {
             if (opt_boxes[i].contains(mouse)) {
