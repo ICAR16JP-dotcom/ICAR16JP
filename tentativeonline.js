@@ -44,7 +44,7 @@ for (const block of blocks) {
     const loopScheduler = new Scheduler(psychoJS);
     flowScheduler.add(trialsLoopBegin(loopScheduler, block.file, block.name));
     flowScheduler.add(loopScheduler);
-    flowScheduler.add(trialsLoopEnd);  // ora è definita sotto
+    flowScheduler.add(trialsLoopEnd);
 }
 
 flowScheduler.add(quitPsychoJS);
@@ -77,13 +77,12 @@ async function updateInfo() {
 var routineClock, mainImage, mainQ, mouse, progressBar, progressBox;
 var opt_texts = [], opt_boxes = [];
 var totalQuestions = 16, currentQuestionIdx = 0;
-var currentTrials;  // ← globale necessaria per trialsLoopEnd
+var currentTrials;
 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
-// Hover colour constants
 const COLOR_DEFAULT = new util.Color('white');
-const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);  // azzurro chiaro
+const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);
 
 async function experimentInit() {
     routineClock = new util.Clock();
@@ -124,7 +123,7 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
         let allConditions = TrialHandler.importConditions(psychoJS.serverManager, fileName);
         util.shuffle(allConditions);
         
-        currentTrials = new TrialHandler({   // ← usa currentTrials, non trials
+        currentTrials = new TrialHandler({ 
             psychoJS, 
             nReps: 1, 
             method: TrialHandler.Method.SEQUENTIAL, 
@@ -140,7 +139,7 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
             if (stepResult.done) return Scheduler.Event.NEXT;
             let thisTrial = stepResult.value;
             
-            scheduler.add(importConditions(currentTrials.getSnapshot()));
+            // ← rimossa la riga importConditions() che non era definita
             scheduler.add(routineBegin(thisTrial, blockName));
             scheduler.add(routineFrame(thisTrial, blockName));
             scheduler.add(routineEnd());
@@ -153,7 +152,6 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
     }
 }
 
-// ← funzione ora definita
 async function trialsLoopEnd() {
     psychoJS.experiment.removeLoop(currentTrials);
     return Scheduler.Event.NEXT;
@@ -201,7 +199,7 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);  // reset a bianco ad ogni domanda
+            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
         
         psychoJS.experiment.addData('block', blockName);
