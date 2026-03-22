@@ -1,7 +1,7 @@
 /********************************************************
- * ICAR16 - FINAL VERSION
+ * ICAR16 - FINAL STABLE VERSION (COMPLETE)
  * PhD Research Data Collection
- * Features: 16 Randomized Items, Exact Snapshot Dimensions
+ * Features: 16 Random Trials, Exact Screenshot Dimensions
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -9,14 +9,11 @@ const { PsychoJS } = core;
 const { TrialHandler } = data;
 const { Scheduler } = util;
 
-// --- 🚨 MODIFICA QUI IL TITOLO DELLA FINESTRA 🚨 ---
 let expName = 'ICAR16'; 
 let expInfo = {'participant': ''};
 
-// Initialize PsychoJS
 const psychoJS = new PsychoJS({ debug: true });
 
-// Open window
 psychoJS.openWindow({
     fullscr: true,
     color: new util.Color('black'),
@@ -24,7 +21,6 @@ psychoJS.openWindow({
     waitBlanking: true
 });
 
-// Schedule dialog box (The title will now be ICAR16)
 psychoJS.schedule(psychoJS.gui.DlgFromDict({
     dictionary: expInfo,
     title: expName
@@ -34,11 +30,9 @@ const flowScheduler = new Scheduler(psychoJS);
 const dialogCancelScheduler = new Scheduler(psychoJS);
 psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);
 
-// Add main routines to scheduler
 flowScheduler.add(updateInfo);
 flowScheduler.add(experimentInit);
 
-// Define experiment blocks
 const blocks = [
     { name: 'LN', file: 'conditions_LN.csv' },
     { name: 'VR', file: 'conditions_VR.csv' },
@@ -46,7 +40,6 @@ const blocks = [
     { name: 'MX', file: 'conditions_MX.csv' }
 ];
 
-// Schedule loops for each block
 for (const block of blocks) {
     const loopScheduler = new Scheduler(psychoJS);
     flowScheduler.add(trialsLoopBegin(loopScheduler, block.file, block.name));
@@ -54,10 +47,8 @@ for (const block of blocks) {
     flowScheduler.add(trialsLoopEnd);
 }
 
-// Add quit routine
 flowScheduler.add(quitPsychoJS);
 
-// --- RESOURCES MANAGEMENT ---
 let resources = [
     { name: 'conditions_LN.csv', path: './resources/conditions_LN.csv' },
     { name: 'conditions_VR.csv', path: './resources/conditions_VR.csv' },
@@ -74,7 +65,6 @@ for (let id of mx_ids) {
     resources.push({ name: `images/image_MX/fig${id}.png`, path: `./resources/images/image_MX/fig${id}.jpg` });
 }
 
-// Start experiment
 psychoJS.start({ expName, expInfo, resources });
 
 async function updateInfo() {
@@ -83,20 +73,11 @@ async function updateInfo() {
     return Scheduler.Event.NEXT;
 }
 
-// --- VISUAL COMPONENTS & SCORING SETUP ---
 var routineClock, mainImage, mainQ, mouse, progressBar, progressBox;
 var opt_texts = [], opt_boxes = [];
-
-// 16 RANDOMIZED TRIALS (4 PER BLOCK)
 var totalQuestions = 16, currentQuestionIdx = 0; 
 
-var scores = {
-    TOTAL: 0,
-    LN: 0,
-    VR: 0,
-    '3DR': 0, 
-    MX: 0
-};
+var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
 async function experimentInit() {
     routineClock = new util.Clock();
@@ -104,7 +85,7 @@ async function experimentInit() {
     mainImage = new visual.ImageStim({ 
         win: psychoJS.window, 
         pos: [0, 0.15], 
-        size: [0.55, 0.4],
+        size: [0.55, 0.4], 
         interpolate: true 
     });
     
@@ -150,18 +131,14 @@ function trialsLoopBegin(scheduler, fileName, blockName) {
         
         function nextTrial() {
             let stepResult = trialIterator.next();
-            if (stepResult.done) {
-                return Scheduler.Event.NEXT;
-            }
+            if (stepResult.done) return Scheduler.Event.NEXT;
             let thisTrial = stepResult.value;
             
             scheduler.add(importConditions(trials.getSnapshot()));
             scheduler.add(routineBegin(thisTrial, blockName));
             scheduler.add(routineFrame(thisTrial, blockName));
             scheduler.add(routineEnd());
-            
             scheduler.add(nextTrial); 
-            
             return Scheduler.Event.NEXT;
         }
         
@@ -185,12 +162,13 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setImage(img); 
             mainImage.setOpacity(1.0); 
             
+            // EXACT GEOMETRY FROM SCREENSHOTS
             if (blockName === '3DR') {
                 mainImage.setPos([0, 0.10]);  
-                mainImage.setSize([1.20, 0.32]); 
+                mainImage.setSize([1.20, 0.32]); // Wide
             } else if (blockName === 'MX') {
                 mainImage.setPos([0, 0.16]); 
-                mainImage.setSize([0.45, 0.45]); 
+                mainImage.setSize([0.45, 0.45]); // Square
             } else {
                 mainImage.setPos([0, 0.10]);
                 mainImage.setSize([0.60, 0.30]);
@@ -200,8 +178,8 @@ function routineBegin(thisTrial, blockName) {
             mainQ.setHeight(0.028);
             mainQ.setWrapWidth(1.4); 
         } else { 
+            // Phase without images (LN, VR)
             mainImage.setOpacity(0.0); 
-            
             mainQ.setPos([0, 0.15]);
             mainQ.setHeight(0.045);
             mainQ.setWrapWidth(0.85); 
@@ -212,7 +190,6 @@ function routineBegin(thisTrial, blockName) {
         for (let i = 1; i <= 8; i++) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
-            
             opt_texts[i-1].setText(choiceText);
             opt_boxes[i-1].setFillColor(new util.Color('white'));
         }
@@ -236,15 +213,12 @@ function routineFrame(thisTrial, blockName) {
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
             for (let i = 0; i < 8; i++) {
                 if (opt_boxes[i].contains(mouse)) {
-                    
                     let givenResponse = i + 1; 
                     let correctAnswer = parseInt(thisTrial['ANSWER']);
                     let isCorrect = (givenResponse === correctAnswer) ? 1 : 0;
                     
                     scores.TOTAL += isCorrect;
-                    if (scores[blockName] !== undefined) {
-                        scores[blockName] += isCorrect;
-                    }
+                    if (scores[blockName] !== undefined) scores[blockName] += isCorrect;
 
                     psychoJS.experiment.addData('response', givenResponse);
                     psychoJS.experiment.addData('rt', routineClock.getTime());
