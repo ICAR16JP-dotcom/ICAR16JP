@@ -170,7 +170,7 @@ function routineBegin(thisTrial, blockName) {
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
                 // Top edge: 0.355, Bottom edge: -0.095 (Safe)
-                mainImage.setPos([0, 0.13]); 
+                mainImage.setPos([0, 0.05]); 
                 mainImage.setSize([0.65, 0.45]); 
             } else {
                 mainImage.setPos([0, 0.15]);
