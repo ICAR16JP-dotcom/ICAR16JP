@@ -207,11 +207,12 @@ function routineFrame(thisTrial, blockName) {
         mainQ.setAutoDraw(true); 
         progressBox.setAutoDraw(true); 
         progressBar.setAutoDraw(true);
-
-        // box prima, testi dopo — così i testi stanno sempre sopra
         opt_boxes.forEach(b => b.setAutoDraw(true));
 
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
+
+        // toglie i testi dalla lista di disegno...
+        opt_texts.forEach(t => t.setAutoDraw(false));
 
         // --- HOVER HIGHLIGHT ---
         for (let i = 0; i < 8; i++) {
@@ -222,7 +223,7 @@ function routineFrame(thisTrial, blockName) {
             }
         }
 
-        // testi ridisegnati DOPO l'hover, rimangono sempre in cima
+        // ...poi li rimette sopra tutto il resto
         opt_texts.forEach(t => t.setAutoDraw(true));
 
         // --- CLICK DETECTION ---
