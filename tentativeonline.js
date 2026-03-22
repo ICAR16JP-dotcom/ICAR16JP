@@ -1,7 +1,6 @@
 /********************************************************
- * ICAR16 - FINAL RESEARCH VERSION
- * PhD Research Data Collection - Beatrice Iaria
- * Features: 16 Randomized Trials, Updated Visual Geometry
+ * ICAR16 - FINAL VERSION
+ * Features: 16 Randomized Trials
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -233,8 +232,8 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setOpacity(1.0); 
             
             if (blockName === '3DR') {
-                mainImage.setPos([0, 0.08]);  
-                mainImage.setSize([1.10, 0.45]); 
+                mainImage.setPos([0, 0.10]);  
+                mainImage.setSize([1.10, 0.49]); 
             } else if (blockName === 'MX') {
                 mainImage.setPos([0, 0.12]); 
                 mainImage.setSize([0.75, 0.48]); 
