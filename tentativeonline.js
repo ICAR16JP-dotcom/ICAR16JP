@@ -165,7 +165,7 @@ function routineBegin(thisTrial, blockName) {
             
             if (blockName === '3DR') {
                 // Diminuito larghezza (1.10) e aumentato altezza (0.45)
-                mainImage.setPos([0, 0.12]);  
+                mainImage.setPos([0, 0.14]);  
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
                 // Aumentata dimensione generale a 0.55
