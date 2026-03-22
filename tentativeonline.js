@@ -33,6 +33,9 @@ psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.but
 flowScheduler.add(updateInfo);
 flowScheduler.add(experimentInit);
 
+// ← schermata introduttiva prima dei blocchi
+flowScheduler.add(introScreenRoutine);
+
 const blocks = [
     { name: 'LN', file: 'conditions_LN.csv' },
     { name: 'VR', file: 'conditions_VR.csv' },
@@ -80,8 +83,11 @@ var totalQuestions = 16, currentQuestionIdx = 0;
 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
-const COLOR_DEFAULT = new util.Color('white');
-const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);
+const COLOR_LINE_DEFAULT = new util.Color('white');
+const COLOR_LINE_HOVER   = new util.Color([0.0, 0.4, 1.0]);
+
+// ← variabili schermata intro
+var introText, startBox, startText, introMouse;
 
 async function experimentInit() {
     routineClock = new util.Clock();
@@ -109,12 +115,79 @@ async function experimentInit() {
     const y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
     
     for (let i = 0; i < 8; i++) {
-        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: COLOR_DEFAULT });
+        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: COLOR_LINE_DEFAULT, lineWidth: 1, fillColor: new util.Color('white') });
         opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
     }
-    
+
+    // ← schermata intro: testo istruzioni
+    introText = new visual.TextStim({
+        win: psychoJS.window,
+        font: 'Hiragino Kaku Gothic Pro',
+        pos: [0, 0.10],
+        height: 0.038,
+        color: new util.Color('white'),
+        wrapWidth: 1.4,
+        text: 'これからテストを始めます。\n\n画面に問題が表示されます。\n\n正しいと思う答えを、下のボックスをクリックして選んでください。\n\n準備ができたら「スタート」ボタンを押してください。'
+    });
+
+    // ← bottone start
+    startBox = new visual.Rect({
+        win: psychoJS.window,
+        width: 0.30,
+        height: 0.10,
+        pos: [0, -0.30],
+        lineColor: new util.Color('white'),
+        lineWidth: 1,
+        fillColor: new util.Color('white')
+    });
+
+    startText = new visual.TextStim({
+        win: psychoJS.window,
+        font: 'Hiragino Kaku Gothic Pro',
+        pos: [0, -0.30],
+        height: 0.040,
+        color: new util.Color('black'),
+        text: 'スタート'
+    });
+
+    introMouse = new core.Mouse({ win: psychoJS.window });
     mouse = new core.Mouse({ win: psychoJS.window });
     return Scheduler.Event.NEXT;
+}
+
+// ← routine schermata intro
+async function introScreenRoutine() {
+    introMouse.mouseClock = new util.Clock();
+    let introMouseWasReleased = false;
+
+    introText.setAutoDraw(true);
+    startBox.setAutoDraw(true);
+    startText.setAutoDraw(true);
+
+    return new Promise((resolve) => {
+        function checkClick() {
+            if (introMouse.getPressed()[0] === 0) introMouseWasReleased = true;
+
+            // hover sul bottone start
+            if (startBox.contains(introMouse)) {
+                startBox.setLineColor(new util.Color([0.0, 0.4, 1.0]));
+                startBox.setLineWidth(4);
+            } else {
+                startBox.setLineColor(new util.Color('white'));
+                startBox.setLineWidth(1);
+            }
+
+            if (introMouse.getPressed()[0] === 1 && introMouseWasReleased && startBox.contains(introMouse)) {
+                introText.setAutoDraw(false);
+                startBox.setAutoDraw(false);
+                startText.setAutoDraw(false);
+                resolve(Scheduler.Event.NEXT);
+                return;
+            }
+            requestAnimationFrame(checkClick);
+        }
+        requestAnimationFrame(checkClick);
+    });
 }
 
 function trialsLoopBegin(scheduler, fileName, blockName) {
@@ -193,7 +266,8 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
+            opt_boxes[i-1].setLineColor(COLOR_LINE_DEFAULT);
+            opt_boxes[i-1].setLineWidth(1);
         }
         
         psychoJS.experiment.addData('block', blockName);
@@ -207,24 +281,21 @@ function routineFrame(thisTrial, blockName) {
         mainQ.setAutoDraw(true); 
         progressBox.setAutoDraw(true); 
         progressBar.setAutoDraw(true);
-        opt_boxes.forEach(b => b.setAutoDraw(true));
-
+        opt_boxes.forEach(b => b.setAutoDraw(true)); 
+        opt_texts.forEach(t => t.setAutoDraw(true));
+        
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
 
-        // toglie i testi dalla lista di disegno...
-        opt_texts.forEach(t => t.setAutoDraw(false));
-
-        // --- HOVER HIGHLIGHT ---
+        // --- HOVER ---
         for (let i = 0; i < 8; i++) {
             if (opt_boxes[i].contains(mouse)) {
-                opt_boxes[i].setFillColor(COLOR_HOVER);
+                opt_boxes[i].setLineColor(COLOR_LINE_HOVER);
+                opt_boxes[i].setLineWidth(4);
             } else {
-                opt_boxes[i].setFillColor(COLOR_DEFAULT);
+                opt_boxes[i].setLineColor(COLOR_LINE_DEFAULT);
+                opt_boxes[i].setLineWidth(1);
             }
         }
-
-        // ...poi li rimette sopra tutto il resto
-        opt_texts.forEach(t => t.setAutoDraw(true));
 
         // --- CLICK DETECTION ---
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
