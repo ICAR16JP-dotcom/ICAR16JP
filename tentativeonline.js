@@ -169,8 +169,8 @@ function routineBegin(thisTrial, blockName) {
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
                 // Aumentata dimensione generale a 0.55
-                mainImage.setPos([0, 0.10]); 
-                mainImage.setSize([0.62, 0.38]); 
+                mainImage.setPos([0, 0.09]); 
+                mainImage.setSize([0.75, 0.42]); 
             } else {
                 mainImage.setPos([0, 0.10]);
                 mainImage.setSize([0.60, 0.30]);
