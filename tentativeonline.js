@@ -82,8 +82,8 @@ var opt_texts = [], opt_boxes = [];
 var totalQuestions = 16, currentQuestionIdx = 0; 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
-const COLOR_LINE_DEFAULT = new util.Color('white');
-const COLOR_LINE_HOVER   = new util.Color([0.0, 0.4, 1.0]);
+const COLOR_DEFAULT = new util.Color('white');
+const COLOR_HOVER   = new util.Color([0.75, 0.85, 1.0]);
 
 var introText, startBox, startText, introMouse, introMouseWasReleased;
 
@@ -113,7 +113,7 @@ async function experimentInit() {
     const y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
     
     for (let i = 0; i < 8; i++) {
-        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: COLOR_LINE_DEFAULT, fillColor: new util.Color('white') });
+        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: new util.Color('white'), fillColor: COLOR_DEFAULT });
         opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
     }
 
@@ -132,7 +132,7 @@ async function experimentInit() {
         width: 0.30,
         height: 0.10,
         pos: [0, -0.32],
-        lineColor: COLOR_LINE_DEFAULT,
+        lineColor: new util.Color('white'),
         fillColor: new util.Color('white')
     });
 
@@ -150,7 +150,6 @@ async function experimentInit() {
     return Scheduler.Event.NEXT;
 }
 
-// --- INTRO SCREEN ROUTINES (stesso pattern di routineBegin/Frame/End) ---
 async function introBegin() {
     introMouseWasReleased = false;
     introText.setAutoDraw(true);
@@ -162,14 +161,15 @@ async function introBegin() {
 async function introFrame() {
     if (introMouse.getPressed()[0] === 0) introMouseWasReleased = true;
 
-    // hover bottone start
+    // hover bottone: false/true trick per tenere startText sopra
+    startText.setAutoDraw(false);
     if (startBox.contains(introMouse)) {
-        startBox.setLineColor(COLOR_LINE_HOVER);
+        startBox.setFillColor(COLOR_HOVER);
     } else {
-        startBox.setLineColor(COLOR_LINE_DEFAULT);
+        startBox.setFillColor(COLOR_DEFAULT);
     }
+    startText.setAutoDraw(true);
 
-    // click su start
     if (introMouse.getPressed()[0] === 1 && introMouseWasReleased && startBox.contains(introMouse)) {
         return Scheduler.Event.NEXT;
     }
@@ -259,7 +259,7 @@ function routineBegin(thisTrial, blockName) {
             let choiceText = thisTrial[`choice${i}`];
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
-            opt_boxes[i-1].setLineColor(COLOR_LINE_DEFAULT);
+            opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
         
         psychoJS.experiment.addData('block', blockName);
@@ -273,19 +273,20 @@ function routineFrame(thisTrial, blockName) {
         mainQ.setAutoDraw(true); 
         progressBox.setAutoDraw(true); 
         progressBar.setAutoDraw(true);
-        opt_boxes.forEach(b => b.setAutoDraw(true)); 
-        opt_texts.forEach(t => t.setAutoDraw(true));
-        
+        opt_boxes.forEach(b => b.setAutoDraw(true));
+
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
 
-        // --- HOVER: solo setLineColor, senza setLineWidth ---
+        // ← trucco: togli i testi, aggiorna i box, rimetti i testi sopra
+        opt_texts.forEach(t => t.setAutoDraw(false));
         for (let i = 0; i < 8; i++) {
             if (opt_boxes[i].contains(mouse)) {
-                opt_boxes[i].setLineColor(COLOR_LINE_HOVER);
+                opt_boxes[i].setFillColor(COLOR_HOVER);
             } else {
-                opt_boxes[i].setLineColor(COLOR_LINE_DEFAULT);
+                opt_boxes[i].setFillColor(COLOR_DEFAULT);
             }
         }
+        opt_texts.forEach(t => t.setAutoDraw(true));
 
         // --- CLICK DETECTION ---
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
