@@ -32,9 +32,9 @@ psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.but
 
 flowScheduler.add(updateInfo);
 flowScheduler.add(experimentInit);
-
-// ← schermata introduttiva prima dei blocchi
-flowScheduler.add(introScreenRoutine);
+flowScheduler.add(introBegin);
+flowScheduler.add(introFrame);
+flowScheduler.add(introEnd);
 
 const blocks = [
     { name: 'LN', file: 'conditions_LN.csv' },
@@ -80,14 +80,12 @@ async function updateInfo() {
 var routineClock, mainImage, mainQ, mouse, progressBar, progressBox;
 var opt_texts = [], opt_boxes = [];
 var totalQuestions = 16, currentQuestionIdx = 0; 
-
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
 
 const COLOR_LINE_DEFAULT = new util.Color('white');
 const COLOR_LINE_HOVER   = new util.Color([0.0, 0.4, 1.0]);
 
-// ← variabili schermata intro
-var introText, startBox, startText, introMouse;
+var introText, startBox, startText, introMouse, introMouseWasReleased;
 
 async function experimentInit() {
     routineClock = new util.Clock();
@@ -115,11 +113,10 @@ async function experimentInit() {
     const y_pos = [-0.22, -0.22, -0.22, -0.22, -0.35, -0.35, -0.35, -0.35];
     
     for (let i = 0; i < 8; i++) {
-        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: COLOR_LINE_DEFAULT, lineWidth: 1, fillColor: new util.Color('white') });
+        opt_boxes[i] = new visual.Rect({ win: psychoJS.window, width: 0.3, height: 0.1, pos: [x_pos[i], y_pos[i]], lineColor: COLOR_LINE_DEFAULT, fillColor: new util.Color('white') });
         opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
     }
 
-    // ← schermata intro: testo istruzioni
     introText = new visual.TextStim({
         win: psychoJS.window,
         font: 'Hiragino Kaku Gothic Pro',
@@ -130,21 +127,19 @@ async function experimentInit() {
         text: 'これからテストを始めます。\n\n画面に問題が表示されます。\n\n正しいと思う答えを、下のボックスをクリックして選んでください。\n\n準備ができたら「スタート」ボタンを押してください。'
     });
 
-    // ← bottone start
     startBox = new visual.Rect({
         win: psychoJS.window,
         width: 0.30,
         height: 0.10,
-        pos: [0, -0.30],
-        lineColor: new util.Color('white'),
-        lineWidth: 1,
+        pos: [0, -0.32],
+        lineColor: COLOR_LINE_DEFAULT,
         fillColor: new util.Color('white')
     });
 
     startText = new visual.TextStim({
         win: psychoJS.window,
         font: 'Hiragino Kaku Gothic Pro',
-        pos: [0, -0.30],
+        pos: [0, -0.32],
         height: 0.040,
         color: new util.Color('black'),
         text: 'スタート'
@@ -155,39 +150,37 @@ async function experimentInit() {
     return Scheduler.Event.NEXT;
 }
 
-// ← routine schermata intro
-async function introScreenRoutine() {
-    introMouse.mouseClock = new util.Clock();
-    let introMouseWasReleased = false;
-
+// --- INTRO SCREEN ROUTINES (stesso pattern di routineBegin/Frame/End) ---
+async function introBegin() {
+    introMouseWasReleased = false;
     introText.setAutoDraw(true);
     startBox.setAutoDraw(true);
     startText.setAutoDraw(true);
+    return Scheduler.Event.NEXT;
+}
 
-    return new Promise((resolve) => {
-        function checkClick() {
-            if (introMouse.getPressed()[0] === 0) introMouseWasReleased = true;
+async function introFrame() {
+    if (introMouse.getPressed()[0] === 0) introMouseWasReleased = true;
 
-            // hover sul bottone start
-            if (startBox.contains(introMouse)) {
-                startBox.setLineColor(new util.Color([0.0, 0.4, 1.0]));
-                startBox.setLineWidth(4);
-            } else {
-                startBox.setLineColor(new util.Color('white'));
-                startBox.setLineWidth(1);
-            }
+    // hover bottone start
+    if (startBox.contains(introMouse)) {
+        startBox.setLineColor(COLOR_LINE_HOVER);
+    } else {
+        startBox.setLineColor(COLOR_LINE_DEFAULT);
+    }
 
-            if (introMouse.getPressed()[0] === 1 && introMouseWasReleased && startBox.contains(introMouse)) {
-                introText.setAutoDraw(false);
-                startBox.setAutoDraw(false);
-                startText.setAutoDraw(false);
-                resolve(Scheduler.Event.NEXT);
-                return;
-            }
-            requestAnimationFrame(checkClick);
-        }
-        requestAnimationFrame(checkClick);
-    });
+    // click su start
+    if (introMouse.getPressed()[0] === 1 && introMouseWasReleased && startBox.contains(introMouse)) {
+        return Scheduler.Event.NEXT;
+    }
+    return Scheduler.Event.FLIP_REPEAT;
+}
+
+async function introEnd() {
+    introText.setAutoDraw(false);
+    startBox.setAutoDraw(false);
+    startText.setAutoDraw(false);
+    return Scheduler.Event.NEXT;
 }
 
 function trialsLoopBegin(scheduler, fileName, blockName) {
@@ -267,7 +260,6 @@ function routineBegin(thisTrial, blockName) {
             choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
             opt_boxes[i-1].setLineColor(COLOR_LINE_DEFAULT);
-            opt_boxes[i-1].setLineWidth(1);
         }
         
         psychoJS.experiment.addData('block', blockName);
@@ -286,14 +278,12 @@ function routineFrame(thisTrial, blockName) {
         
         if (mouse.getPressed()[0] === 0) window.mouseWasReleased = true;
 
-        // --- HOVER ---
+        // --- HOVER: solo setLineColor, senza setLineWidth ---
         for (let i = 0; i < 8; i++) {
             if (opt_boxes[i].contains(mouse)) {
                 opt_boxes[i].setLineColor(COLOR_LINE_HOVER);
-                opt_boxes[i].setLineWidth(4);
             } else {
                 opt_boxes[i].setLineColor(COLOR_LINE_DEFAULT);
-                opt_boxes[i].setLineWidth(1);
             }
         }
 
