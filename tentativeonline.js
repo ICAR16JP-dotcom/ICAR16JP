@@ -163,16 +163,17 @@ function routineBegin(thisTrial, blockName) {
             mainImage.setImage(img); 
             mainImage.setOpacity(1.0); 
             
+            // Safe mathematical positioning to prevent overlapping
             if (blockName === '3DR') {
-                // Diminuito larghezza (1.10) e aumentato altezza (0.45)
+                // Top edge: 0.345, Bottom edge: -0.105 (Safe)
                 mainImage.setPos([0, 0.12]);  
                 mainImage.setSize([1.10, 0.45]); 
             } else if (blockName === 'MX') {
-                // Aumentata dimensione generale a 0.55
-                mainImage.setPos([0, 0.18]); 
-                mainImage.setSize([0.65, 0.50]); 
+                // Top edge: 0.355, Bottom edge: -0.095 (Safe)
+                mainImage.setPos([0, 0.13]); 
+                mainImage.setSize([0.65, 0.45]); 
             } else {
-                mainImage.setPos([0, 0.10]);
+                mainImage.setPos([0, 0.15]);
                 mainImage.setSize([0.60, 0.30]);
             }
             
