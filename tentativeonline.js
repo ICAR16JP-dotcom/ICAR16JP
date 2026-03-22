@@ -1,6 +1,5 @@
 /********************************************************
- * ICAR16 - FINAL RESEARCH VERSION
- * PhD Research Data Collection - Beatrice Iaria
+ * ICAR16 - FINAL VERSION
  * Features: 16 Randomized Trials, Updated Visual Geometry
  ********************************************************/
 
