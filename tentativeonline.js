@@ -1,7 +1,7 @@
 /********************************************************
  * ICAR16 - FINAL RESEARCH VERSION
  * PhD Research Data Collection - Beatrice Iaria
- * Features: 16 Randomized Trials, Updated Visual Geometry
+ * Features: 16 Randomized Trials, Updated Visual Geometry, Blocked Local Download
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -332,38 +332,45 @@ async function quitPsychoJS() {
     psychoJS.experiment.addData('rt_total_ms', (totalTime * 1000).toFixed(0));
     psychoJS.experiment.nextEntry(); 
 
+    // Extract data for Google Drive
     const csvText = psychoJS.experiment.getResultAsCsv();
 
-    // ← blocca il download automatico di PsychoJS
-    const _createObjectURL = URL.createObjectURL;
-    URL.createObjectURL = () => '';
-    setTimeout(() => { URL.createObjectURL = _createObjectURL; }, 5000);
+    // Completely disable PsychoJS local download feature
+    psychoJS.experiment.save = function() {
+        console.log("Local download blocked successfully.");
+    };
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQDX5lYwgiSkd6db2voDPiK_jgjba30R2irdBO82qYE6czj4HyclG1Uxa659vcW-xh/exec";
     const iframe = document.createElement('iframe');
     iframe.name = 'hidden_iframe';
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
+    
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = GOOGLE_SCRIPT_URL;
     form.target = 'hidden_iframe'; 
+    
     const filenameInput = document.createElement('input');
     filenameInput.type = 'hidden';
     filenameInput.name = 'filename';
     filenameInput.value = `${psychoJS.experiment.dataFileName}.csv`;
     form.appendChild(filenameInput);
+    
     const dataInput = document.createElement('input');
     dataInput.type = 'hidden';
     dataInput.name = 'data';
     dataInput.value = csvText;
     form.appendChild(dataInput);
+    
     document.body.appendChild(form);
     form.submit();
+    
     setTimeout(() => {
         psychoJS.window.close();
         psychoJS.quit();
     }, 3000);
+    
     return Scheduler.Event.QUIT;
 }
 
