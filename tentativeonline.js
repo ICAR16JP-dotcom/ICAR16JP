@@ -1,7 +1,7 @@
 /********************************************************
  * ICAR16 - FINAL VERSION
  * Features: Geometry Fix, Blocked Local Download,
- * Category RTs, Participant ID everywhere, Bulletproof Newlines
+ * Category RTs, Participant ID, Bulletproof Newlines
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
