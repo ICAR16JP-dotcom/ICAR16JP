@@ -1,7 +1,7 @@
 /********************************************************
  * ICAR16 - FINAL RESEARCH VERSION
  * PhD Research Data Collection - Beatrice Iaria
- * Features: 16 Randomized Trials, Updated Visual Geometry, Blocked Local Download
+ * Features: 16 Randomized Trials, Updated Visual Geometry, Blocked Local Download, Custom Newlines
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -254,11 +254,12 @@ function routineBegin(thisTrial, blockName) {
             mainQ.setWrapWidth(0.85); 
         }
 
-        mainQ.setText(thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString().replace(/\\n/g, '\n') : "");
+        // Accept any slash variation for newlines (\n, \N, /n, /N)
+        mainQ.setText(thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString().replace(/\\n|\/n|\/N|\\N/g, '\n') : "");
         
         for (let i = 1; i <= 8; i++) {
             let choiceText = thisTrial[`choice${i}`];
-            choiceText = choiceText ? choiceText.toString().replace(/\\n/g, '\n') : "";
+            choiceText = choiceText ? choiceText.toString().replace(/\\n|\/n|\/N|\\N/g, '\n') : "";
             opt_texts[i-1].setText(choiceText);
             opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
@@ -368,7 +369,8 @@ async function quitPsychoJS() {
     
     setTimeout(() => {
         psychoJS.window.close();
-        psychoJS.quit();
+        // Custom Japanese closing message
+        psychoJS.quit({message: '実験が終了しました。\nご協力ありがとうございました。'});
     }, 3000);
     
     return Scheduler.Event.QUIT;
