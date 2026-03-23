@@ -1,7 +1,7 @@
 /********************************************************
  * ICAR16 - FINAL RESEARCH VERSION
  * PhD Research Data Collection - Beatrice Iaria
- * Features: 16 Randomized Trials, Updated Visual Geometry, Blocked Local Download, Custom Newlines
+ * Features: 16 Randomized Trials, Updated Visual Geometry, Blocked Local Download, Custom Newlines, Category RTs
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -81,6 +81,7 @@ var routineClock, mainImage, mainQ, mouse, progressBar, progressBox;
 var opt_texts = [], opt_boxes = [];
 var totalQuestions = 16, currentQuestionIdx = 0; 
 var scores = { TOTAL: 0, LN: 0, VR: 0, '3DR': 0, MX: 0 };
+var rt_totals = { LN: 0, VR: 0, '3DR': 0, MX: 0 };
 var experimentClock;
 
 const COLOR_DEFAULT = new util.Color('white');
@@ -254,7 +255,6 @@ function routineBegin(thisTrial, blockName) {
             mainQ.setWrapWidth(0.85); 
         }
 
-        // Accept any slash variation for newlines (\n, \N, /n, /N)
         mainQ.setText(thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString().replace(/\\n|\/n|\/N|\\N/g, '\n') : "");
         
         for (let i = 1; i <= 8; i++) {
@@ -290,19 +290,20 @@ function routineFrame(thisTrial, blockName) {
         }
         opt_texts.forEach(t => t.setAutoDraw(true));
 
-        // --- CLICK DETECTION ---
         if (mouse.getPressed()[0] === 1 && window.mouseWasReleased) {
             for (let i = 0; i < 8; i++) {
                 if (opt_boxes[i].contains(mouse)) {
                     let givenResponse = i + 1; 
                     let correctAnswer = parseInt(thisTrial['ANSWER']);
                     let isCorrect = (givenResponse === correctAnswer) ? 1 : 0;
+                    let rt_ms = routineClock.getTime() * 1000;
                     
                     scores.TOTAL += isCorrect;
                     if (scores[blockName] !== undefined) scores[blockName] += isCorrect;
+                    if (rt_totals[blockName] !== undefined) rt_totals[blockName] += rt_ms;
 
                     psychoJS.experiment.addData('response', givenResponse);
-                    psychoJS.experiment.addData('rt', (routineClock.getTime() * 1000).toFixed(0));
+                    psychoJS.experiment.addData('rt', rt_ms.toFixed(0));
                     psychoJS.experiment.addData('is_correct', isCorrect);
 
                     psychoJS.experiment.nextEntry();
@@ -330,16 +331,18 @@ async function quitPsychoJS() {
     psychoJS.experiment.addData('score_VR', `${scores.VR}/4`);
     psychoJS.experiment.addData('score_3DR', `${scores['3DR']}/4`);
     psychoJS.experiment.addData('score_MX', `${scores.MX}/4`);
+    
+    psychoJS.experiment.addData('rt_LN', rt_totals.LN.toFixed(0));
+    psychoJS.experiment.addData('rt_VR', rt_totals.VR.toFixed(0));
+    psychoJS.experiment.addData('rt_3DR', rt_totals['3DR'].toFixed(0));
+    psychoJS.experiment.addData('rt_MX', rt_totals.MX.toFixed(0));
+    
     psychoJS.experiment.addData('rt_total_ms', (totalTime * 1000).toFixed(0));
     psychoJS.experiment.nextEntry(); 
 
-    // Extract data for Google Drive
     const csvText = psychoJS.experiment.getResultAsCsv();
 
-    // Completely disable PsychoJS local download feature
-    psychoJS.experiment.save = function() {
-        console.log("Local download blocked successfully.");
-    };
+    psychoJS.experiment.save = function() {};
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQDX5lYwgiSkd6db2voDPiK_jgjba30R2irdBO82qYE6czj4HyclG1Uxa659vcW-xh/exec";
     const iframe = document.createElement('iframe');
@@ -369,7 +372,6 @@ async function quitPsychoJS() {
     
     setTimeout(() => {
         psychoJS.window.close();
-        // Custom Japanese closing message
         psychoJS.quit({message: '実験が終了しました。\nご協力ありがとうございました。'});
     }, 3000);
     
