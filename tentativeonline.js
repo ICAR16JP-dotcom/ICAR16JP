@@ -300,7 +300,7 @@ function routineFrame(thisTrial, blockName) {
                     if (scores[blockName] !== undefined) scores[blockName] += isCorrect;
 
                     psychoJS.experiment.addData('response', givenResponse);
-                    psychoJS.experiment.addData('rt', routineClock.getTime());
+                    psychoJS.experiment.addData('rt', (routineClock.getTime() * 1000).toFixed(0)); // ← ms
                     psychoJS.experiment.addData('is_correct', isCorrect);
 
                     psychoJS.experiment.nextEntry();
@@ -328,10 +328,9 @@ async function quitPsychoJS() {
     psychoJS.experiment.addData('score_VR', `${scores.VR}/4`);
     psychoJS.experiment.addData('score_3DR', `${scores['3DR']}/4`);
     psychoJS.experiment.addData('score_MX', `${scores.MX}/4`);
-    psychoJS.experiment.addData('rt_total_ms', (totalTime * 1000).toFixed(0));
+    psychoJS.experiment.addData('rt_total_ms', (totalTime * 1000).toFixed(0)); // ← ms
     psychoJS.experiment.nextEntry(); 
 
-    // nessun download per i partecipanti — solo invio su Drive
     const csvText = psychoJS.experiment.getResultAsCsv();
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDXm9boEQyqA1SYMTXa0_lNRDpFy6RhiXsfo_jKIal-MxVU_jFTYMlCSdaLFcuKbYW/exec";
     const iframe = document.createElement('iframe');
