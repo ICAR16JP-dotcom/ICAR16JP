@@ -295,6 +295,9 @@ function routineFrame(thisTrial, blockName) {
                     if (scores[blockName] !== undefined) scores[blockName] += isCorrect;
                     if (rt_totals[blockName] !== undefined) rt_totals[blockName] += rt_ms;
 
+                    // explicitly save participant and date for every trial row
+                    psychoJS.experiment.addData('participant', expInfo['participant']);
+                    psychoJS.experiment.addData('date', expInfo['date']);
                     psychoJS.experiment.addData('response', givenResponse);
                     psychoJS.experiment.addData('rt', rt_ms.toFixed(0));
                     psychoJS.experiment.addData('is_correct', isCorrect);
@@ -318,6 +321,9 @@ function routineEnd() {
 async function quitPsychoJS() {
     const totalTime = experimentClock ? experimentClock.getTime() : 0;
 
+    // explicitly save participant and date for the final summary row
+    psychoJS.experiment.addData('participant', expInfo['participant']);
+    psychoJS.experiment.addData('date', expInfo['date']);
     psychoJS.experiment.addData('block', 'FINAL_SUMMARY');
     psychoJS.experiment.addData('score_TOTAL', `${scores.TOTAL}/16`);
     psychoJS.experiment.addData('score_LN', `${scores.LN}/4`);
