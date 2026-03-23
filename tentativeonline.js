@@ -263,7 +263,6 @@ function routineBegin(thisTrial, blockName) {
             opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
         
-        // salva il numero del trial per il blocco corrente
         psychoJS.experiment.addData('block', blockName);
         psychoJS.experiment.addData('trial_n', currentQuestionIdx);
         return Scheduler.Event.NEXT;
@@ -334,6 +333,12 @@ async function quitPsychoJS() {
     psychoJS.experiment.nextEntry(); 
 
     const csvText = psychoJS.experiment.getResultAsCsv();
+
+    // ← blocca il download automatico di PsychoJS
+    const _createObjectURL = URL.createObjectURL;
+    URL.createObjectURL = () => '';
+    setTimeout(() => { URL.createObjectURL = _createObjectURL; }, 5000);
+
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQDX5lYwgiSkd6db2voDPiK_jgjba30R2irdBO82qYE6czj4HyclG1Uxa659vcW-xh/exec";
     const iframe = document.createElement('iframe');
     iframe.name = 'hidden_iframe';
