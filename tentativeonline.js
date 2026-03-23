@@ -180,7 +180,7 @@ async function introEnd() {
     introText.setAutoDraw(false);
     startBox.setAutoDraw(false);
     startText.setAutoDraw(false);
-    experimentClock = new util.Clock(); // ← parte al click di スタート
+    experimentClock = new util.Clock();
     return Scheduler.Event.NEXT;
 }
 
@@ -328,10 +328,10 @@ async function quitPsychoJS() {
     psychoJS.experiment.addData('score_VR', `${scores.VR}/4`);
     psychoJS.experiment.addData('score_3DR', `${scores['3DR']}/4`);
     psychoJS.experiment.addData('score_MX', `${scores.MX}/4`);
-    psychoJS.experiment.addData('rt_total_ms', (totalTime * 1000).toFixed(0)); // ← in millisecondi
+    psychoJS.experiment.addData('rt_total_ms', (totalTime * 1000).toFixed(0));
     psychoJS.experiment.nextEntry(); 
 
-    psychoJS.experiment.save();
+    // nessun download per i partecipanti — solo invio su Drive
     const csvText = psychoJS.experiment.getResultAsCsv();
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDXm9boEQyqA1SYMTXa0_lNRDpFy6RhiXsfo_jKIal-MxVU_jFTYMlCSdaLFcuKbYW/exec";
     const iframe = document.createElement('iframe');
