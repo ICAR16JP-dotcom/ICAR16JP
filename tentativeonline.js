@@ -1,8 +1,8 @@
 /********************************************************
  * ICAR16 - FINAL RESEARCH VERSION
  * PhD Research Data Collection - Beatrice Iaria
- * Features: 16 Randomized Trials, Geometry Fix, Blocked Local Download,
- * Category RTs, Participant ID everywhere, Super Newline Fix
+ * Features: Geometry Fix, Blocked Local Download,
+ * Category RTs, Participant ID everywhere, Bulletproof Newlines
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -256,17 +256,23 @@ function routineBegin(thisTrial, blockName) {
             mainQ.setWrapWidth(0.85); 
         }
 
-        // --- SUPER NEWLINE FIX ---
-        // Catches ANY slash variation (\n, /n, /N, \N) even if surrounded by spaces
-        let rawQ = thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString() : "";
-        mainQ.setText(rawQ.replace(/\s*[\/\\]\s*[nN]\s*/g, '\n'));
+        // --- BULLETPROOF NEWLINE FORMATTER ---
+        // Converts \n, \N, /n, /N and double-escaped versions into real newlines
+        const formatText = (txt) => {
+            if (!txt) return "";
+            return txt.toString()
+                .replace(/\\\\n/gi, '\n') // Catches double backslash
+                .replace(/\\n/gi, '\n')   // Catches single backslash
+                .replace(/\/n/gi, '\n');  // Catches forward slash
+        };
+
+        mainQ.setText(formatText(thisTrial['QUESTION']));
         
         for (let i = 1; i <= 8; i++) {
-            let choiceText = thisTrial[`choice${i}`] ? thisTrial[`choice${i}`].toString() : "";
-            opt_texts[i-1].setText(choiceText.replace(/\s*[\/\\]\s*[nN]\s*/g, '\n'));
+            opt_texts[i-1].setText(formatText(thisTrial[`choice${i}`]));
             opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
-        // -------------------------
+        // -------------------------------------
         
         psychoJS.experiment.addData('block', blockName);
         psychoJS.experiment.addData('trial_n', currentQuestionIdx);
@@ -306,7 +312,6 @@ function routineFrame(thisTrial, blockName) {
                     if (scores[blockName] !== undefined) scores[blockName] += isCorrect;
                     if (rt_totals[blockName] !== undefined) rt_totals[blockName] += rt_ms;
 
-                    // explicitly save participant and date for every trial row
                     psychoJS.experiment.addData('participant', expInfo['participant']);
                     psychoJS.experiment.addData('date', expInfo['date']);
                     psychoJS.experiment.addData('response', givenResponse);
@@ -332,7 +337,6 @@ function routineEnd() {
 async function quitPsychoJS() {
     const totalTime = experimentClock ? experimentClock.getTime() : 0;
 
-    // explicitly save participant and date for the final summary row
     psychoJS.experiment.addData('participant', expInfo['participant']);
     psychoJS.experiment.addData('date', expInfo['date']);
     psychoJS.experiment.addData('block', 'FINAL_SUMMARY');
@@ -352,7 +356,6 @@ async function quitPsychoJS() {
 
     const csvText = psychoJS.experiment.getResultAsCsv();
 
-    // Prevent local download
     psychoJS.experiment.save = function() {};
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQDX5lYwgiSkd6db2voDPiK_jgjba30R2irdBO82qYE6czj4HyclG1Uxa659vcW-xh/exec";
@@ -383,7 +386,6 @@ async function quitPsychoJS() {
     
     setTimeout(() => {
         psychoJS.window.close();
-        // Custom Japanese closing message
         psychoJS.quit({message: '実験が終了しました。\nご協力ありがとうございました。'});
     }, 3000);
     
