@@ -1,3 +1,10 @@
+/********************************************************
+ * ICAR16 - FINAL RESEARCH VERSION
+ * PhD Research Data Collection - Beatrice Iaria
+ * Features: 16 Randomized Trials, Geometry Fix, Blocked Local Download,
+ * Category RTs, Participant ID everywhere, Super Newline Fix
+ ********************************************************/
+
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
 const { PsychoJS } = core;
 const { TrialHandler } = data;
@@ -46,6 +53,7 @@ for (const block of blocks) {
 
 flowScheduler.add(quitPsychoJS);
 
+// --- RESOURCES MANAGEMENT ---
 let resources = [
     { name: 'conditions_LN.csv', path: './resources/conditions_LN.csv' },
     { name: 'conditions_VR.csv', path: './resources/conditions_VR.csv' },
@@ -248,14 +256,17 @@ function routineBegin(thisTrial, blockName) {
             mainQ.setWrapWidth(0.85); 
         }
 
-        mainQ.setText(thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString().replace(/\\n|\/n|\/N|\\N/g, '\n') : "");
+        // --- SUPER NEWLINE FIX ---
+        // Catches ANY slash variation (\n, /n, /N, \N) even if surrounded by spaces
+        let rawQ = thisTrial['QUESTION'] ? thisTrial['QUESTION'].toString() : "";
+        mainQ.setText(rawQ.replace(/\s*[\/\\]\s*[nN]\s*/g, '\n'));
         
         for (let i = 1; i <= 8; i++) {
-            let choiceText = thisTrial[`choice${i}`];
-            choiceText = choiceText ? choiceText.toString().replace(/\\n|\/n|\/N|\\N/g, '\n') : "";
-            opt_texts[i-1].setText(choiceText);
+            let choiceText = thisTrial[`choice${i}`] ? thisTrial[`choice${i}`].toString() : "";
+            opt_texts[i-1].setText(choiceText.replace(/\s*[\/\\]\s*[nN]\s*/g, '\n'));
             opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
+        // -------------------------
         
         psychoJS.experiment.addData('block', blockName);
         psychoJS.experiment.addData('trial_n', currentQuestionIdx);
@@ -341,6 +352,7 @@ async function quitPsychoJS() {
 
     const csvText = psychoJS.experiment.getResultAsCsv();
 
+    // Prevent local download
     psychoJS.experiment.save = function() {};
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQDX5lYwgiSkd6db2voDPiK_jgjba30R2irdBO82qYE6czj4HyclG1Uxa659vcW-xh/exec";
@@ -371,6 +383,7 @@ async function quitPsychoJS() {
     
     setTimeout(() => {
         psychoJS.window.close();
+        // Custom Japanese closing message
         psychoJS.quit({message: '実験が終了しました。\nご協力ありがとうございました。'});
     }, 3000);
     
