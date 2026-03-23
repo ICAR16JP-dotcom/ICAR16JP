@@ -263,7 +263,9 @@ function routineBegin(thisTrial, blockName) {
             opt_boxes[i-1].setFillColor(COLOR_DEFAULT);
         }
         
+        // salva il numero del trial per il blocco corrente
         psychoJS.experiment.addData('block', blockName);
+        psychoJS.experiment.addData('trial_n', currentQuestionIdx);
         return Scheduler.Event.NEXT;
     }
 }
