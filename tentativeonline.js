@@ -1,9 +1,3 @@
-/********************************************************
- * ICAR16 - FINAL RESEARCH VERSION
- * PhD Research Data Collection - Beatrice Iaria
- * Features: 16 Randomized Trials, Updated Visual Geometry, Blocked Local Download, Custom Newlines, Category RTs
- ********************************************************/
-
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
 const { PsychoJS } = core;
 const { TrialHandler } = data;
@@ -52,7 +46,6 @@ for (const block of blocks) {
 
 flowScheduler.add(quitPsychoJS);
 
-// --- RESOURCES MANAGEMENT ---
 let resources = [
     { name: 'conditions_LN.csv', path: './resources/conditions_LN.csv' },
     { name: 'conditions_VR.csv', path: './resources/conditions_VR.csv' },
