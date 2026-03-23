@@ -1,7 +1,8 @@
 /********************************************************
  * ICAR16 - FINAL RESEARCH VERSION
+ * PhD Research Data Collection - Beatrice Iaria
  * Features: Geometry Fix, Blocked Local Download,
- * Category RTs, Participant ID everywhere, Bulletproof Newlines, Universal WrapWidth
+ * Category RTs, Participant ID everywhere, Bulletproof Newlines
  ********************************************************/
 
 import { core, data, sound, util, visual, hardware } from './lib/psychojs-2026.1.1.js';
@@ -99,14 +100,13 @@ async function experimentInit() {
         interpolate: true 
     });
     
-    // Adjusted initial wrapWidth from 1.2 to 1.1 for universally safe scaling
     mainQ = new visual.TextStim({ 
         win: psychoJS.window, 
         font: 'Hiragino Kaku Gothic Pro', 
         pos: [0, 0.43], 
         height: 0.028, 
         color: new util.Color('white'), 
-        wrapWidth: 1.1 
+        wrapWidth: 1.2 
     });
     
     progressBox = new visual.Rect({ win: psychoJS.window, width: 0.8, height: 0.01, pos: [0, -0.48], lineColor: new util.Color('grey') });
@@ -120,14 +120,13 @@ async function experimentInit() {
         opt_texts[i] = new visual.TextStim({ win: psychoJS.window, font: 'Hiragino Kaku Gothic Pro', pos: [x_pos[i], y_pos[i]], height: 0.022, color: new util.Color('black') });
     }
 
-    // Adjusted intro wrapWidth from 1.4 to 1.1 to prevent cutoff on narrow monitors
     introText = new visual.TextStim({
         win: psychoJS.window,
         font: 'Hiragino Kaku Gothic Pro',
         pos: [0, 0.10],
         height: 0.038,
         color: new util.Color('white'),
-        wrapWidth: 1.1,
+        wrapWidth: 1.4,
         text: 'これからテストを始めます。\n\n画面に問題が表示されます。\n\n正しいと思う答えを、下のボックスをクリックして選んでください。\n\n準備ができたら「スタート」ボタンを押してください。'
     });
 
@@ -249,8 +248,7 @@ function routineBegin(thisTrial, blockName) {
             
             mainQ.setPos([0, 0.43]);
             mainQ.setHeight(0.028);
-            // Adjusted dynamic wrapWidth from 1.4 to 1.1 to prevent cutoff
-            mainQ.setWrapWidth(1.1); 
+            mainQ.setWrapWidth(1.4); 
         } else { 
             mainImage.setOpacity(0.0); 
             mainQ.setPos([0, 0.15]);
@@ -394,4 +392,5 @@ async function quitPsychoJS() {
     return Scheduler.Event.QUIT;
 }
 
-function trialsLoopEnd() { return
+function trialsLoopEnd() { return Scheduler.Event.NEXT; }
+function importConditions(s) { return async function () { psychoJS.importAttributes(s); return Scheduler.Event.NEXT; }; }
