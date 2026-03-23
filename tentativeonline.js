@@ -1,6 +1,5 @@
 /********************************************************
- * ICAR16 - FINAL RESEARCH VERSION
- * PhD Research Data Collection - Beatrice Iaria
+ * ICAR16 - FINAL VERSION
  * Features: Geometry Fix, Blocked Local Download,
  * Category RTs, Participant ID everywhere, Bulletproof Newlines
  ********************************************************/
