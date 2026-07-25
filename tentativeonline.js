@@ -357,7 +357,7 @@ async function quitPsychoJS() {
 
     psychoJS.experiment.save = function() {};
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyl6QWfQYOG_7um0sxqsDELFvmKUlhdkGYcKCaYqDtRRKCv-C7ssLyr7hwtjsBstF1a/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxh0cv5pRq7Ov1tUbgT0pwwJnw9DQQnGVkACyQCOrF02Bm32L0dLM41aPb2rCq2HC2F/exec";
     const iframe = document.createElement('iframe');
     iframe.name = 'hidden_iframe';
     iframe.style.display = 'none';
